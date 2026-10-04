@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+</head>
+
+<body>
+    <p id="sumresult"> </p>
+
+    <button onclick="sum(5,8)"> Add </button><br>
+    <p id="1result"> </p>
+    <button onclick="myfunction(5)">Execute JS function</button>
+
+    <script>
+
+        function myfunction(x, y) {
+
+            if (y === undefined) {
+
+                y = 2;
+            
+            }
+
+             document.getElementById("1result").innerHTML =  x*y;
+
+
+        }
+
+        function sum(a, b) {
+            result = a + b;
+
+            document.getElementById("sumresult").innerHTML = result;
+        }
+
+        
+    </script>
+
+</body>
+
+</html>

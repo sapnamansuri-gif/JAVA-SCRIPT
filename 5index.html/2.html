@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#F7F4EE" />
+<title>RUBINA — A World in Watercolor</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        canvas:'#F7F4EE', charcoal:'#1A1A1A', stone:'#8C857B', sand:'#E6E1DA',
+        gold:'#A38B67', water:'#4A6B82', waterwash:'#E8EEF5',
+        forest:'#56705D', forestwash:'#EAF2EC', rose:'#A36B62',
+        rosewash:'#F4EBEA', lavender:'#7B7896', lavenderwash:'#EFEFF5'
+      },
+      fontFamily:{serif:['"Cormorant Garamond"','serif'],sans:['"Montserrat"','sans-serif']},
+      keyframes:{
+        fadeIn:{'0%':{opacity:'0',transform:'translateY(22px)'},'100%':{opacity:'1',transform:'translateY(0)'}},
+        roomIn:{'0%':{opacity:'0',transform:'translateY(28px) scale(.985)'},'100%':{opacity:'1',transform:'translateY(0) scale(1)'}},
+        wash:{'0%':{opacity:'0',transform:'scale(.92)'},'35%':{opacity:'.65'},'100%':{opacity:'0',transform:'scale(1.08)'}},
+        float:{'0%,100%':{transform:'translateY(0)'},'50%':{transform:'translateY(-8px)'}}
+      },
+      animation:{
+        'slow-fade':'fadeIn 800ms cubic-bezier(.16,1,.3,1) both',
+        'room-in':'roomIn 900ms cubic-bezier(.16,1,.3,1) both',
+        'float-soft':'float 7s ease-in-out infinite'
+      }
+    }
+  }
+}
+</script>
+
+<style>
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:#F7F4EE;color:#1A1A1A;font-family:'Montserrat',sans-serif;
+  overflow-x:hidden;transition:background-color 850ms cubic-bezier(.16,1,.3,1),color 850ms cubic-bezier(.16,1,.3,1)
+}
+body.room-night{background:#111722;color:#F2F0EA}
+body.room-water{background:#F3F6F6;color:#1A1A1A}
+body.room-rain{background:#EEF2F4;color:#1A1A1A}
+body.room-forest{background:#F0F4F0;color:#1A1A1A}
+body.room-light{background:#FBF6EA;color:#1A1A1A}
+body.room-studio{background:#F4EEEA;color:#1A1A1A}
+body.room-transitioning::before{
+  content:"";position:fixed;inset:0;z-index:9998;pointer-events:none;
+  background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.22),transparent 43%);
+  animation:roomWash 900ms cubic-bezier(.16,1,.3,1) both
+}
+@keyframes roomWash{
+  0%{opacity:0;transform:scale(.96)}
+  30%{opacity:.7}
+  100%{opacity:0;transform:scale(1.06)}
+}
+.room-label-pop{animation:roomLabelPop 800ms cubic-bezier(.16,1,.3,1) both}
+@keyframes roomLabelPop{
+  0%{opacity:0;transform:translateY(12px);letter-spacing:.45em}
+  45%{opacity:1}
+  100%{opacity:1;transform:translateY(0);letter-spacing:.28em}
+}
+body.room-night .bg-canvas{background:#171E2A!important;color:#F2F0EA}
+body.room-night .text-charcoal{color:#F2F0EA!important}
+body.room-night .text-charcoal\/60{color:rgba(242,240,234,.6)!important}
+body.room-night .text-stone{color:#AAB3C0!important}
+body.room-night nav{background:rgba(17,23,34,.86);border-color:rgba(242,240,234,.12)}
+body.room-night .luxury-border{border-color:rgba(242,240,234,.15)}
+.room-orb{position:fixed;border-radius:999px;pointer-events:none;z-index:0;filter:blur(55px);opacity:.34;transition:all 900ms cubic-bezier(.16,1,.3,1)}
+.watercolor-reveal{animation:watercolorReveal 1050ms cubic-bezier(.16,1,.3,1) both}
+@keyframes watercolorReveal{
+  0%{opacity:0;transform:translateY(16px) scale(.985);filter:blur(7px) saturate(.7);clip-path:inset(9% 0 9% 0)}
+  55%{opacity:.85;filter:blur(1.2px) saturate(.9)}
+  100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0) saturate(1);clip-path:inset(0)}
+}
+.section-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(140,133,123,.32),transparent)}
+.luxury-border{border:1px solid rgba(140,133,123,.20)}
+.wash{position:absolute;border-radius:999px;filter:blur(48px);pointer-events:none;opacity:.55}
+button,input,select,textarea{font:inherit}
+button{-webkit-tap-highlight-color:transparent}
+input[type=file]::file-selector-button{
+  border:0;background:#1A1A1A;color:#F7F4EE;padding:.7rem 1rem;margin-right:.8rem;
+  cursor:pointer;font-size:10px;letter-spacing:.14em;text-transform:uppercase
+}
+.field{width:100%;padding:.8rem .9rem;background:rgba(230,225,218,.2);border:1px solid rgba(26,26,26,.18);font-size:11px;outline:none}
+.field:focus{border-color:#A38B67}
+.field-label{display:block;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#8C857B;margin-bottom:.5rem}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:#F7F4EE}
+::-webkit-scrollbar-thumb{background:#C2BBB2}
+*:focus-visible{outline:2px solid #A38B67;outline-offset:3px}
+@media(max-width:640px){.mobile-safe{padding-bottom:calc(6rem + env(safe-area-inset-bottom))}}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const {useState,useEffect,useMemo,useRef} = React;
+
+const SEED = [
+ {id:'seed-1',type:'artwork',title:'Moonlit Lakehouse',mood:'Night',category:'Water',url:'https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?auto=format&fit=crop&w=1200&q=85',description:'A quiet study of light and water under a silver moon.',published:true},
+ {id:'seed-2',type:'artwork',title:'Forest Rain',mood:'Forest',category:'Rain',url:'https://images.unsplash.com/photo-1572949645841-094f3a9c4c94?auto=format&fit=crop&w=1200&q=85',description:'Mist drifting through ancient, rain-soaked pines.',published:true},
+ {id:'seed-3',type:'video',title:'Watercolor Pigment Flow & Washing',mood:'Studio',category:'Studio',url:'',poster:'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=1200&q=85',description:'A quiet studio process moment.',published:true},
+ {id:'seed-4',type:'artwork',title:'Morning Ripple',mood:'Stillness',category:'Water',url:'https://images.unsplash.com/photo-1437482078695-73f5ca6c96e2?auto=format&fit=crop&w=1200&q=85',description:'The absolute stillness of the lake at first light.',published:true},
+ {id:'seed-5',type:'artwork',title:'Autumn Canopy',mood:'Light',category:'Forest',url:'https://images.unsplash.com/photo-1508697525281-fd7cce14cb62?auto=format&fit=crop&w=1200&q=85',description:'Warm amber light filtering through translucent leaves.',published:true},
+ {id:'seed-6',type:'video',title:'Layering Wet-on-Wet Washes',mood:'Studio',category:'Studio',url:'',poster:'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=1200&q=85',description:'Quiet observations of pigment spreading across damp paper.',published:true},
+ {id:'seed-7',type:'artwork',title:'Ethereal Tides',mood:'Water',category:'Water',url:'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=85',description:'Fluid washes inspired by ocean movement.',published:true},
+ {id:'seed-8',type:'artwork',title:'Twilight Woods',mood:'Night',category:'Forest',url:'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1200&q=85',description:'Deep indigo shadows resting among the trees.',published:true}
+];
+
+const CONTENT_KEY='rubina_stage1_content_v5';
+const LIKE_KEY='rubina_stage1_likes_v5';
+const VIEW_KEY='rubina_stage1_views_v5';
+const DB_NAME='rubina_stage1_media_v1';
+const DB_STORE='media';
+
+function readJSON(key,fallback){
+  try{const v=JSON.parse(localStorage.getItem(key));return v??fallback}catch{return fallback}
+}
+function saveJSON(key,value){
+  try{localStorage.setItem(key,JSON.stringify(value));return true}catch{return false}
+}
+function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}
+function roomClass(room){
+  return {Water:'water',Rain:'rain',Forest:'forest',Light:'light',Night:'night',Studio:'studio'}[room]||'water'
+}
+
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    const request=indexedDB.open(DB_NAME,1);
+    request.onupgradeneeded=()=>request.result.createObjectStore(DB_STORE);
+    request.onsuccess=()=>resolve(request.result);
+    request.onerror=()=>reject(request.error);
+  })
+}
+async function putMedia(id,file){
+  const db=await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(DB_STORE,'readwrite');
+    tx.objectStore(DB_STORE).put(file,id);
+    tx.oncomplete=()=>{db.close();resolve(true)}
+    tx.onerror=()=>{db.close();reject(tx.error)}
+  })
+}
+async function getMedia(id){
+  const db=await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(DB_STORE,'readonly');
+    const req=tx.objectStore(DB_STORE).get(id);
+    req.onsuccess=()=>{db.close();resolve(req.result||null)}
+    req.onerror=()=>{db.close();reject(req.error)}
+  })
+}
+async function deleteMedia(id){
+  try{
+    const db=await openDB();
+    await new Promise((resolve,reject)=>{
+      const tx=db.transaction(DB_STORE,'readwrite');
+      tx.objectStore(DB_STORE).delete(id);
+      tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)
+    });
+    db.close();
+  }catch{}
+}
+
+function useRoomAtmosphere(room){
+  useEffect(()=>{
+    const classes=['room-night','room-water','room-rain','room-forest','room-light','room-studio'];
+    document.body.classList.remove(...classes);
+    document.body.classList.add('room-'+roomClass(room));
+    document.body.classList.remove('room-transitioning');
+    void document.body.offsetWidth;
+    document.body.classList.add('room-transitioning');
+    const timer=setTimeout(()=>document.body.classList.remove('room-transitioning'),950);
+    return()=>clearTimeout(timer)
+  },[room])
+}
+
+function App(){
+  const [view,setView]=useState('intro');
+  const [items,setItems]=useState(()=>readJSON(CONTENT_KEY,SEED));
+  const [likes,setLikes]=useState(()=>readJSON(LIKE_KEY,{}));
+  const [views,setViews]=useState(()=>readJSON(VIEW_KEY,{}));
+  const [activeRoom,setActiveRoom]=useState('All');
+  const [selected,setSelected]=useState(null);
+  const [toast,setToast]=useState('');
+  const [menu,setMenu]=useState(false);
+  const [ready,setReady]=useState(false);
+  const [mediaVersion,setMediaVersion]=useState(0);
+  const [cursor,setCursor]=useState({x:-300,y:-300});
+
+  useRoomAtmosphere(activeRoom==='All'?'Water':activeRoom);
+
+  useEffect(()=>{saveJSON(CONTENT_KEY,items)},[items]);
+  useEffect(()=>{saveJSON(LIKE_KEY,likes)},[likes]);
+  useEffect(()=>{saveJSON(VIEW_KEY,views)},[views]);
+
+  useEffect(()=>{
+    let mounted=true;
+    (async()=>{
+      const next=[];
+      for(const item of items){
+        if(item.mediaId){
+          try{
+            const blob=await getMedia(item.mediaId);
+            if(blob) next.push({...item,localUrl:URL.createObjectURL(blob)});
+            else next.push(item);
+          }catch{next.push(item)}
+        }else next.push(item)
+      }
+      if(mounted){setItems(next);setMediaVersion(v=>v+1);setReady(true)}
+    })();
+    return()=>{mounted=false}
+  },[]);
+
+  useEffect(()=>{
+    const move=e=>{if(innerWidth>=1024)setCursor({x:e.clientX,y:e.clientY})};
+    addEventListener('mousemove',move,{passive:true});
+    return()=>removeEventListener('mousemove',move)
+  },[]);
+
+  useEffect(()=>{
+    const key=e=>{
+      if(e.key==='Escape'){
+        if(selected){setSelected(null);return}
+        if(menu){setMenu(false);return}
+        if(view==='intro'){setView('exhibition');return}
+      }
+      if((e.altKey||e.metaKey)&&e.key.toLowerCase()==='1'){e.preventDefault();setView('exhibition')}
+      if((e.altKey||e.metaKey)&&e.key.toLowerCase()==='2'){e.preventDefault();setView('curation')}
+      if((e.altKey||e.metaKey)&&e.key.toLowerCase()==='3'){e.preventDefault();setView('admin')}
+    };
+    addEventListener('keydown',key);
+    return()=>removeEventListener('keydown',key)
+  },[selected,menu,view]);
+
+  useEffect(()=>{
+    if(!toast)return;
+    const t=setTimeout(()=>setToast(''),2600);return()=>clearTimeout(t)
+  },[toast]);
+
+  const published=useMemo(()=>items.filter(x=>x.published),[items]);
+
+  const likeItem=(id,e)=>{
+    e?.stopPropagation();
+    setLikes(prev=>({...prev,[id]:Math.max(0,Number(prev[id]||0)+1)}))
+  };
+
+  // One counted view per artwork per browser session.
+  const openItem=item=>{
+    setSelected(item);
+    const key='rubina_viewed_session_v1';
+    const seen=readJSON(key,{});
+    if(!seen[item.id]){
+      setViews(prev=>({...prev,[item.id]:Math.max(0,Number(prev[item.id]||0)+1)}));
+      saveJSON(key,{...seen,[item.id]:true});
+    }
+  };
+
+  const navigate=next=>{
+    setView(next);setMenu(false);window.scrollTo({top:0,behavior:'smooth'})
+  };
+
+  const updateItems=next=>{
+    setItems(next);setToast('Studio inventory updated')
+  };
+
+  if(!ready && view!=='intro') return <LoadingScreen/>;
+
+  if(view==='intro') return <CinematicIntro onEnter={()=>navigate('exhibition')}/>;
+
+  return <div className="min-h-screen relative selection:bg-gold/20">
+    <div className="wash w-72 h-72 bg-waterwash -top-20 -left-24"/>
+    <div className="wash w-80 h-80 bg-forestwash top-[40%] -right-32"/>
+    <div className="wash w-72 h-72 bg-rosewash bottom-0 left-[25%]"/>
+    <div className="fixed pointer-events-none w-96 h-96 rounded-full bg-stone/5 blur-3xl -translate-x-1/2 -translate-y-1/2 z-0 hidden lg:block" style={{left:cursor.x,top:cursor.y}}/>
+
+    <nav className="fixed top-0 left-0 w-full z-40 px-5 sm:px-8 lg:px-16 py-4 sm:py-6 flex justify-between items-center backdrop-blur-md bg-canvas/85 luxury-border border-b">
+      <button aria-label="Go to exhibition home" onClick={()=>navigate('exhibition')} className="font-serif text-2xl sm:text-3xl tracking-[.22em]">RUBINA</button>
+      <button aria-expanded={menu} aria-controls="main-navigation" aria-label="Open navigation" className="lg:hidden px-3 py-2 luxury-border text-xs tracking-widest" onClick={()=>setMenu(!menu)}>{menu?'CLOSE':'MENU'}</button>
+      <div id="main-navigation" className={`${menu?'flex':'hidden'} lg:flex absolute lg:static top-full left-0 right-0 bg-canvas/95 backdrop-blur-md lg:bg-transparent flex-col lg:flex-row items-stretch lg:items-center gap-1 lg:gap-8 p-4 lg:p-0 luxury-border lg:border-0`}>
+        <NavButton active={view==='exhibition'} onClick={()=>navigate('exhibition')}>EXHIBITION</NavButton>
+        <NavButton active={view==='curation'} onClick={()=>navigate('curation')}>SMART CURATOR</NavButton>
+        <NavButton active={view==='admin'} onClick={()=>navigate('admin')}>STUDIO ADMIN</NavButton>
+      </div>
+    </nav>
+
+    <main className="pt-28 sm:pt-32 pb-24 mobile-safe px-4 sm:px-6 lg:px-16 max-w-[1440px] mx-auto relative z-10">
+      <div key={view} className="animate-room-in">
+        {view==='exhibition'&&<ExhibitionView items={published} activeRoom={activeRoom} setActiveRoom={setActiveRoom} onOpen={openItem} likes={likes} onLike={likeItem}/>}
+        {view==='curation'&&<SmartCurationView items={published} onOpen={openItem}/>}
+        {view==='admin'&&<AdminView items={items} setItems={updateItems} views={views} likes={likes} setToast={setToast} mediaVersion={mediaVersion}/>}
+      </div>
+    </main>
+
+    {selected&&<LightboxModal item={selected} onClose={()=>setSelected(null)} likes={likes} onLike={likeItem}/>}
+    {toast&&<div role="status" aria-live="polite" className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[80] bg-charcoal text-canvas px-5 py-3 text-[10px] tracking-[.18em] uppercase shadow-lg">{toast}</div>}
+  </div>
+}
+
+function NavButton({children,onClick,active}){
+  return <button onClick={onClick} className={`text-left lg:text-center px-4 py-3 lg:px-0 lg:py-0 text-xs tracking-[.18em] transition-colors ${active?'text-gold':'text-charcoal/65 hover:text-gold'}`}>{children}</button>
+}
+
+function LoadingScreen(){
+  return <div className="min-h-screen flex items-center justify-center bg-canvas"><div className="text-center animate-slow-fade"><div className="font-serif text-4xl tracking-[.2em]">RUBINA</div><div className="text-[9px] tracking-[.3em] text-stone uppercase mt-3">Preparing the exhibition</div></div></div>
+}
+
+function CinematicIntro({onEnter}){
+  const [loaded,setLoaded]=useState(false);
+  useEffect(()=>{const t=setTimeout(()=>setLoaded(true),120);return()=>clearTimeout(t)},[]);
+  return <div className="fixed inset-0 bg-[#121212] text-canvas flex items-center justify-center z-50 overflow-hidden">
+    <div className="absolute inset-0 opacity-25 bg-cover bg-center scale-105" style={{backgroundImage:`url(${SEED[0].url})`,filter:'grayscale(15%) contrast(115%)'}}/>
+    <div className="absolute w-72 h-72 rounded-full bg-water/20 blur-3xl -left-20 top-10"/>
+    <div className={`relative z-10 flex flex-col items-center text-center px-5 transition-all duration-1000 ${loaded?'opacity-100 translate-y-0':'opacity-0 translate-y-8'}`}>
+      <span className="text-[9px] sm:text-[10px] tracking-[.35em] uppercase text-stone mb-5">Private Watercolor Exhibition Flow</span>
+      <h1 className="font-serif text-6xl sm:text-8xl lg:text-9xl tracking-[.16em] font-light mb-3">RUBINA</h1>
+      <p className="font-serif italic text-2xl sm:text-3xl text-stone mb-10 font-light">A World in Watercolor</p>
+      <button onClick={onEnter} className="group relative px-8 sm:px-10 py-4 sm:py-5 overflow-hidden border border-white/20 tracking-[.25em] text-[10px] uppercase">
+        <span className="absolute inset-0 bg-white -translate-x-full group-hover:translate-x-0 transition-transform duration-500"/>
+        <span className="relative z-10 group-hover:text-black">Enter The Exhibition →</span>
+      </button>
+    </div>
+    <button onClick={onEnter} className="absolute bottom-6 right-5 sm:bottom-8 sm:right-8 text-[9px] tracking-[.2em] text-stone hover:text-white">SKIP INTRO [ESC]</button>
+  </div>
+}
+
+function ExhibitionView({items,activeRoom,setActiveRoom,onOpen,likes,onLike}){
+  const rooms=['All','Water','Rain','Forest','Light','Night','Studio'];
+  const filtered=activeRoom==='All'?items:items.filter(i=>i.category===activeRoom||i.mood===activeRoom);
+  return <div className="relative">
+    <div className="absolute inset-x-0 -top-20 h-[520px] overflow-hidden pointer-events-none opacity-[.055]">
+      {filtered[0]&&<img src={filtered[0].type==='video'?filtered[0].poster:filtered[0].url} alt="" aria-hidden="true" className="w-full h-full object-cover blur-2xl scale-110"/>}
+    </div>
+    <div className="room-orb w-72 h-72 -top-16 -left-20 bg-water/20"/>
+    <div className="room-orb w-80 h-80 top-[48%] -right-32 bg-forest/15"/>
+
+    <header className="mb-12 sm:mb-16 text-center max-w-3xl mx-auto relative z-10">
+      <span key={activeRoom} className="room-label-pop text-[10px] tracking-[.3em] uppercase text-stone mb-4 block">{activeRoom==='All'?'Curated Exhibition Rhythm':activeRoom+' Room'}</span>
+      <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-light mb-5 tracking-wide">The Fluidity of Silence</h2>
+      <p className="text-xs sm:text-sm text-stone font-light leading-relaxed">Moving through water, ancient woods, changing light, and quiet studio moments.</p>
+    </header>
+
+    <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-10">
+      {rooms.map(room=><button key={room} aria-pressed={activeRoom===room} onClick={()=>setActiveRoom(room)} className={`px-4 sm:px-6 py-2.5 text-[10px] tracking-[.18em] uppercase transition-all luxury-border ${activeRoom===room?'bg-charcoal text-canvas':'hover:border-gold'}`}>{room}</button>)}
+    </div>
+
+    <div className="flex justify-center mb-14">
+      <span className="text-[9px] tracking-[.25em] uppercase text-stone border-b border-stone/20 pb-2">Atmosphere changes with the room</span>
+    </div>
+
+    {filtered.length===0?<EmptyState text="No pieces are currently in this room."/>:
+    <div key={activeRoom} className="space-y-20 sm:space-y-28 lg:space-y-32">
+      {filtered.map((item,index)=><ExhibitionItem key={item.id} item={item} index={index} onOpen={onOpen} likes={likes} onLike={onLike}/>)}
+    </div>}
+  </div>
+}
+
+function ExhibitionItem({item,index,onOpen,likes,onLike}){
+  if(item.type==='video') return <section className="max-w-5xl mx-auto bg-sand/30 p-4 sm:p-7 lg:p-12 luxury-border animate-slow-fade">
+    <div className="text-center mb-6">
+      <span className="text-[9px] tracking-[.3em] uppercase text-rose mb-2 block">Studio Moment • Quiet Process</span>
+      <h3 className="font-serif text-2xl sm:text-3xl font-light">{item.title}</h3>
+    </div>
+    <div className="relative aspect-video bg-charcoal/5 overflow-hidden luxury-border">
+      {item.localUrl||item.url?<video src={item.localUrl||item.url} poster={item.poster} controls playsInline preload="metadata" className="w-full h-full object-cover"/>:<VideoPlaceholder poster={item.poster} text="Add a studio video in Studio Admin."/>}
+    </div>
+    <div className="mt-5 flex flex-wrap gap-4 justify-between items-center text-[10px] text-stone tracking-wider">
+      <span>RUBINA WATERCOLOUR STUDIO</span>
+      <button onClick={e=>onLike(item.id,e)} className="hover:text-rose transition-colors" aria-label={`Like ${item.title}`}>{likes[item.id]?'♥ '+likes[item.id]:'♡ Like Studio Note'}</button>
+    </div>
+  </section>;
+
+  return <article onClick={()=>onOpen(item)} className="group cursor-pointer grid grid-cols-1 lg:grid-cols-12 gap-7 lg:gap-10 items-center animate-slow-fade">
+    <div className={`lg:col-span-7 ${index%2===1?'lg:order-2':''}`}>
+      <div className="relative overflow-hidden bg-sand p-4 sm:p-6 lg:p-10 luxury-border shadow-sm group-hover:shadow-md transition-shadow duration-700">
+        <div className="overflow-hidden aspect-[16/10] bg-canvas">
+          <img src={item.localUrl||item.url} alt={item.title} loading="lazy" className="watercolor-reveal w-full h-full object-cover transition-transform duration-1000 lg:group-hover:scale-105"/>
+        </div>
+        <span className="absolute top-6 right-6 sm:top-10 sm:right-10 bg-canvas/90 backdrop-blur-sm px-3 py-1 text-[9px] tracking-[.2em] uppercase text-stone luxury-border">{item.mood}</span>
+      </div>
+    </div>
+    <div className={`lg:col-span-5 px-2 sm:px-4 lg:px-8 ${index%2===1?'lg:order-1 lg:text-right':''}`}>
+      <span className="text-[9px] tracking-[.3em] uppercase text-stone mb-3 block">{String(index+1).padStart(2,'0')} — Exhibition Room</span>
+      <h3 className="font-serif text-3xl sm:text-4xl font-light tracking-wide group-hover:text-gold transition-colors mb-4">{item.title}</h3>
+      <p className="text-xs text-stone tracking-wider leading-relaxed mb-5">{item.description}</p>
+      <div className={`flex items-center gap-4 ${index%2===1?'lg:justify-end':''}`}>
+        <span className="text-[10px] uppercase tracking-widest text-charcoal/60">Explore Details →</span>
+        <button onClick={e=>onLike(item.id,e)} className="text-lg text-charcoal/40 hover:text-rose transition-colors" aria-label={`Like ${item.title}`}>{likes[item.id]?'♥ '+likes[item.id]:'♡'}</button>
+      </div>
+    </div>
+  </article>
+}
+
+function SmartCurationView({items,onOpen}){
+  const [mood,setMood]=useState('Water');
+  const rules={
+    Water:{headline:'The Flowing Horizon',text:'A gentle sequence built around fluid movement and open space.'},
+    Forest:{headline:'Deep Woodland Canopy',text:'A darker organic transition with mist, texture, and quiet density.'},
+    Night:{headline:'Midnight Reflections',text:'A closing atmosphere for indigo shadows and evening stillness.'},
+    Studio:{headline:'Authentic Studio Process',text:'Short process moments placed between finished works as breathing spaces.'}
+  };
+  const suggested=items.filter(i=>i.mood===mood||i.category===mood||(mood==='Studio'&&i.type==='video'));
+  return <div className="animate-slow-fade max-w-4xl mx-auto">
+    <div className="text-center mb-12 sm:mb-16">
+      <span className="text-[10px] tracking-[.3em] uppercase text-stone mb-3 block">Rule-Based Curatorial Engine</span>
+      <h2 className="font-serif text-4xl sm:text-5xl font-light mb-5">A Living Exhibition Rhythm</h2>
+      <p className="text-xs sm:text-sm text-stone leading-relaxed">Choose an atmosphere and let the exhibition suggest a quiet sequence. No unnecessary controls.</p>
+    </div>
+    <div className="flex flex-wrap justify-center gap-2 mb-10">
+      {Object.keys(rules).map(x=><button key={x} onClick={()=>setMood(x)} className={`px-5 py-2.5 text-[10px] tracking-[.2em] uppercase luxury-border ${mood===x?'bg-charcoal text-canvas':''}`}>{x}</button>)}
+    </div>
+    <div className="bg-sand/50 p-5 sm:p-8 lg:p-12 luxury-border">
+      <span className="text-[9px] tracking-[.3em] uppercase text-gold block mb-2">Curatorial Recommendation</span>
+      <h3 className="font-serif text-3xl mb-3">{rules[mood].headline}</h3>
+      <p className="text-xs sm:text-sm text-stone leading-relaxed mb-8">{rules[mood].text}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {suggested.length?suggested.map(item=><button key={item.id} onClick={()=>onOpen(item)} className="text-left bg-canvas p-3 sm:p-4 luxury-border flex items-center gap-4 hover:-translate-y-1 transition-transform">
+          <img src={item.type==='video'?item.poster:(item.localUrl||item.url)} alt="" className="w-16 h-16 sm:w-20 sm:h-20 object-cover"/>
+          <div><span className="text-[8px] tracking-widest text-stone uppercase">{item.type==='video'?'Video Moment':'Artwork'}</span><h4 className="font-serif text-xl">{item.title}</h4><p className="text-[10px] text-stone">{item.mood}</p></div>
+        </button>):<EmptyState text="No published pieces match this atmosphere yet."/>}
+      </div>
+    </div>
+  </div>
+}
+
+function LightboxModal({item,onClose,likes,onLike}){
+  const closeRef=useRef(null);
+  useEffect(()=>{
+    document.body.style.overflow='hidden';
+    closeRef.current?.focus();
+    const handler=e=>{if(e.key==='Escape')onClose()};
+    addEventListener('keydown',handler);
+    return()=>{document.body.style.overflow='';removeEventListener('keydown',handler)}
+  },[]);
+  return <div className="fixed inset-0 z-50 bg-charcoal/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 lg:p-12 animate-slow-fade" role="dialog" aria-modal="true" aria-label={item.title}>
+    <button ref={closeRef} onClick={onClose} className="absolute top-4 left-4 sm:top-7 sm:left-8 text-canvas text-[9px] tracking-[.25em] uppercase border border-white/20 px-4 py-3 hover:bg-white hover:text-charcoal transition-colors z-50">← Back</button>
+    <button onClick={onClose} aria-label="Close artwork details" className="absolute top-4 right-4 sm:top-7 sm:right-8 text-canvas text-[9px] tracking-[.25em] uppercase opacity-80 hover:opacity-100 z-50">Close [ESC]</button>
+    <div className="max-w-5xl w-full max-h-[92vh] overflow-auto flex flex-col lg:flex-row items-center gap-6 lg:gap-10 bg-canvas p-4 sm:p-8 lg:p-12 luxury-border text-charcoal">
+      <div className="flex-1 w-full flex items-center justify-center bg-sand/30 p-3 sm:p-4">
+        {item.type==='video'
+          ? (item.localUrl||item.url?<video src={item.localUrl||item.url} poster={item.poster} controls playsInline className="w-full max-h-[60vh] object-contain bg-charcoal"/>:<VideoPlaceholder poster={item.poster} text="No video file is attached."/>)
+          : <img src={item.localUrl||item.url} alt={item.title} className="max-h-[60vh] max-w-full object-contain shadow-md"/>}
+      </div>
+      <div className="w-full lg:w-96 flex flex-col justify-between">
+        <div>
+          <span className="text-[9px] tracking-[.3em] uppercase text-stone mb-2 block">{item.type==='video'?'Studio Video Moment':`Theme: ${item.mood}`}</span>
+          <h3 className="font-serif text-3xl sm:text-4xl font-light mb-4">{item.title}</h3>
+          <p className="text-xs sm:text-sm text-stone leading-relaxed mb-7">{item.description}</p>
+          <div className="grid grid-cols-2 gap-3 mb-7">
+            <Meta label="Category" value={item.category||'—'}/>
+            <Meta label="Mood" value={item.mood||'—'}/>
+            <Meta label="Type" value={item.type==='video'?'Studio Video':'Watercolor'}/>
+            <Meta label="Format" value={item.type==='video'?'Moving image':'Still image'}/>
+          </div>
+        </div>
+        <div className="flex items-center justify-between border-t border-charcoal/10 pt-5">
+          <span className="text-[9px] text-stone tracking-widest uppercase">{item.type==='video'?'Authentic Process':'Original Watercolor'}</span>
+          <button onClick={e=>onLike(item.id,e)} className="flex items-center gap-2 text-xs tracking-wider border border-charcoal/20 px-4 py-2 hover:border-charcoal"><span>{likes[item.id]?'♥':'♡'}</span><span>{likes[item.id]||0} Likes</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+function VideoPlaceholder({poster,text}){
+  return <div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage:`url(${poster||SEED[2].poster})`}}>
+    <div className="absolute inset-0 bg-charcoal/55 flex flex-col items-center justify-center text-canvas text-center p-6">
+      <span className="text-[9px] tracking-[.2em] uppercase border border-white/20 bg-black/30 px-3 py-2 mb-3">Studio Video</span>
+      <p className="font-serif italic text-lg max-w-md">{text}</p>
+    </div>
+  </div>
+}
+
+function AdminView({items,setItems,views,likes,setToast}){
+  const [type,setType]=useState('artwork');
+  const blank={title:'',mood:'Water',category:'Water',description:'',file:null,poster:null,preview:'',posterPreview:''};
+  const [form,setForm]=useState(blank);
+  const [error,setError]=useState('');
+  const [editingId,setEditingId]=useState(null);
+
+  const reset=()=>{setForm(blank);setError('');setEditingId(null)}
+
+  const validate=(file,kind)=>{
+    if(!file)return '';
+    const imageOk=['image/jpeg','image/png','image/webp','image/gif'].includes(file.type);
+    const videoOk=['video/mp4','video/webm','video/quicktime','video/ogg'].includes(file.type);
+    if(kind==='image'&&!imageOk)return 'Please choose a JPG, PNG, WEBP or GIF image.';
+    if(kind==='video'&&!videoOk)return 'Please choose an MP4, WebM, MOV or OGG video.';
+    const limit=kind==='video'?250:20;
+    if(file.size>limit*1024*1024)return `${kind==='video'?'Video':'Image'} is too large. Limit: ${limit} MB.`;
+    return ''
+  };
+
+  const choose=(file,kind)=>{
+    const err=validate(file,kind);
+    if(err){setError(err);return}
+    setError('');
+    if(!file)return;
+    setForm(f=>({...f,[kind==='poster'?'poster':'file']:file,[kind==='poster'?'posterPreview':'preview']:URL.createObjectURL(file)}))
+  };
+
+  const submit=async e=>{
+    e.preventDefault();setError('');
+    if(!form.title.trim())return setError('Please enter a title.');
+    if(!editingId&&!form.file)return setError(`Please select ${type==='artwork'?'an artwork image':'a video file'}.`);
+    try{
+      const id=editingId||uid();
+      let mediaId=editingId?items.find(x=>x.id===editingId)?.mediaId:null;
+      let posterId=editingId?items.find(x=>x.id===editingId)?.posterId:null;
+      if(form.file){mediaId=id+'-media';await putMedia(mediaId,form.file)}
+      if(type==='video'&&form.poster){posterId=id+'-poster';await putMedia(posterId,form.poster)}
+      const old=items.find(x=>x.id===id);
+      const item={
+        ...(old||{}),id,type,
+        title:form.title.trim(),
+        mood:type==='video'?'Studio':form.mood,
+        category:type==='video'?'Studio':form.category,
+        description:form.description.trim()||'A new RUBINA studio piece.',
+        mediaId:mediaId||old?.mediaId||null,
+        posterId:posterId||old?.posterId||null,
+        url:type==='artwork'?(old?.url||''):'',
+        poster:type==='video'?(old?.poster||SEED[2].poster):'',
+        published:old?.published??true,
+        updatedAt:new Date().toISOString()
+      };
+      if(editingId)setItems(items.map(x=>x.id===id?item:x));
+      else setItems([item,...items]);
+      setToast(editingId?'Artwork metadata updated':'Piece added to the exhibition');
+      reset();
+    }catch(err){setError('The browser could not save this media. Try a smaller file or another browser.')}
+  };
+
+  const edit=item=>{
+    setEditingId(item.id);setType(item.type);
+    setForm({title:item.title,mood:item.mood||'Water',category:item.category||'Water',description:item.description||'',file:null,poster:null,preview:item.localUrl||'',posterPreview:item.poster||''});
+    window.scrollTo({top:0,behavior:'smooth'})
+  };
+
+  const toggle=id=>setItems(items.map(x=>x.id===id?{...x,published:!x.published}:x));
+
+  const remove=async id=>{
+    const target=items.find(x=>x.id===id);
+    if(!target||!confirm(`Delete "${target.title}" from this browser?`))return;
+    await deleteMedia(target.mediaId);await deleteMedia(target.posterId);
+    setItems(items.filter(x=>x.id!==id));setToast('Piece removed')
+  };
+
+  return <div className="animate-slow-fade max-w-5xl mx-auto">
+    <header className="mb-8 border-b border-charcoal/10 pb-6">
+      <span className="text-[9px] tracking-[.3em] uppercase text-stone mb-2 block">Studio Management • Stage 1</span>
+      <h2 className="font-serif text-4xl sm:text-5xl font-light">Rubina Studio Admin</h2>
+      <p className="text-xs text-stone mt-3 leading-relaxed max-w-2xl">Stage 1 stores selected media locally in this browser using IndexedDB. This keeps actual files available after a reload and leaves the data layer ready for a later Supabase adapter.</p>
+    </header>
+
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
+      <Stat label="Published" value={items.filter(x=>x.published).length}/>
+      <Stat label="Artwork" value={items.filter(x=>x.type==='artwork').length}/>
+      <Stat label="Video" value={items.filter(x=>x.type==='video').length}/>
+    </div>
+
+    <div className="flex gap-2 mb-5">
+      <button onClick={()=>{reset();setType('artwork')}} className={`px-5 py-3 text-[10px] tracking-[.18em] uppercase luxury-border ${type==='artwork'?'bg-charcoal text-canvas':''}`}>{editingId?'Edit Artwork':'+ Add Artwork'}</button>
+      <button onClick={()=>{reset();setType('video')}} className={`px-5 py-3 text-[10px] tracking-[.18em] uppercase luxury-border ${type==='video'?'bg-charcoal text-canvas':''}`}>+ Add Video</button>
+    </div>
+
+    <form onSubmit={submit} className="bg-canvas p-4 sm:p-6 lg:p-8 luxury-border mb-12">
+      {error&&<div className="mb-5 bg-rosewash border border-rose/20 text-rose px-4 py-3 text-xs" role="alert">{error}</div>}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <h3 className="md:col-span-2 font-serif text-2xl border-b border-charcoal/10 pb-3">{editingId?'Edit Piece':type==='artwork'?'Add New Artwork':'Add New Studio Video'}</h3>
+
+        <label><span className="field-label">Title</span><input value={form.title} onChange={e=>setForm({...form,title:e.target.value})} className="field" placeholder="Moonlit Study"/></label>
+
+        {type==='artwork'?<label><span className="field-label">Mood / Category</span><select value={form.mood} onChange={e=>setForm({...form,mood:e.target.value,category:e.target.value})} className="field">{['Water','Rain','Forest','Light','Stillness','Night'].map(x=><option key={x}>{x}</option>)}</select></label>:<div className="bg-rosewash/50 p-4 text-xs text-stone flex items-center">Studio videos automatically belong to the Studio atmosphere.</div>}
+
+        <label className="block md:col-span-2">
+          <span className="field-label">{type==='artwork'?'Artwork image':'Studio video'} {editingId?'(optional — leave unchanged to keep current media)':''}</span>
+          <input type="file" accept={type==='artwork'?'image/*':'video/*'} onChange={e=>choose(e.target.files?.[0],type==='artwork'?'image':'video')} className="field p-2"/>
+          <span className="text-[9px] text-stone mt-2 block">Touch-first file selection works on phones, tablets and desktop.</span>
+        </label>
+
+        {type==='video'&&<label className="block md:col-span-2">
+          <span className="field-label">Poster / thumbnail (optional)</span>
+          <input type="file" accept="image/*" onChange={e=>choose(e.target.files?.[0],'poster')} className="field p-2"/>
+        </label>}
+
+        <label className="block md:col-span-2">
+          <span className="field-label">Description</span>
+          <textarea maxLength="400" value={form.description} onChange={e=>setForm({...form,description:e.target.value})} className="field min-h-28" placeholder="A short curatorial note..."/>
+          <span className="text-[9px] text-stone mt-1 block">{form.description.length}/400</span>
+        </label>
+
+        {form.preview&&<div className="md:col-span-2 bg-sand/30 p-4 luxury-border">
+          <span className="field-label">Media Preview</span>
+          <div className="aspect-video max-h-[420px] overflow-hidden bg-charcoal flex items-center justify-center">
+            {type==='artwork'?<img src={form.preview} alt="Artwork preview" className="max-h-full max-w-full object-contain"/>:<video src={form.preview} controls muted playsInline className="w-full h-full object-contain"/>}
+          </div>
+        </div>}
+
+        {type==='video'&&form.posterPreview&&<div className="md:col-span-2"><span className="field-label">Poster Preview</span><img src={form.posterPreview} alt="Poster preview" className="w-40 h-24 object-cover luxury-border"/></div>}
+
+        <div className="md:col-span-2 flex flex-col sm:flex-row gap-3">
+          <button type="submit" className="flex-1 bg-charcoal text-canvas py-4 text-[10px] tracking-[.2em] uppercase hover:bg-gold transition-colors">{editingId?'Save Changes':type==='artwork'?'Add Artwork to Exhibition':'Add Video to Exhibition'}</button>
+          <button type="button" onClick={reset} className="sm:w-40 py-4 text-[10px] tracking-[.2em] uppercase luxury-border">{editingId?'Cancel':'Clear'}</button>
+        </div>
+      </div>
+    </form>
+
+    <div>
+      <h3 className="font-serif text-3xl font-light mb-5">Manage Exhibition Inventory</h3>
+      <div className="space-y-3">
+        {items.map(item=><div key={item.id} className="bg-canvas p-3 sm:p-4 luxury-border flex flex-col sm:flex-row gap-4">
+          <div className="w-full sm:w-20 h-40 sm:h-20 bg-sand overflow-hidden flex-shrink-0">
+            {item.type==='video'?<img src={item.poster||SEED[2].poster} alt="" className="w-full h-full object-cover"/>:<img src={item.localUrl||item.url} alt="" className="w-full h-full object-cover"/>}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`text-[8px] tracking-widest uppercase px-2 py-1 ${item.type==='video'?'bg-rosewash text-rose':'bg-waterwash text-water'}`}>{item.type}</span>
+              <h4 className="font-serif text-2xl truncate">{item.title}</h4>
+            </div>
+            <p className="text-[9px] text-stone tracking-widest uppercase mt-1">Views {views[item.id]||0} • Likes {likes[item.id]||0} • {item.published?'Published':'Hidden'}</p>
+          </div>
+          <div className="flex flex-wrap sm:flex-col gap-2 sm:w-28">
+            <button onClick={()=>edit(item)} className="flex-1 px-3 py-2 text-[9px] tracking-widest uppercase luxury-border">Edit</button>
+            <button onClick={()=>toggle(item.id)} className="flex-1 px-3 py-2 text-[9px] tracking-widest uppercase luxury-border">{item.published?'Unpublish':'Publish'}</button>
+            <button onClick={()=>remove(item.id)} className="flex-1 px-3 py-2 text-[9px] tracking-widest uppercase text-rose luxury-border">Delete</button>
+          </div>
+        </div>)}
+      </div>
+    </div>
+  </div>
+}
+
+function Stat({label,value}){return <div className="bg-canvas p-5 luxury-border"><span className="text-[9px] uppercase tracking-[.2em] text-stone">{label}</span><div className="font-serif text-3xl mt-2">{value}</div></div>}
+function Meta({label,value}){return <div className="border-t border-charcoal/10 pt-2"><span className="block text-[8px] uppercase tracking-widest text-stone">{label}</span><span className="block text-[10px] mt-1">{value}</span></div>}
+function EmptyState({text}){return <div className="p-8 text-center text-sm text-stone luxury-border bg-canvas/60">{text}</div>}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RUBINA — Luxury Online Gallery</title>
+    <!-- Supabase Client CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --canvas: #FAFAF9;
+            --charcoal: #1C1C1E;
+            --muted-gray: #8E8E93;
+            --border-subtle: #E5E5EA;
+            
+            /* 10% Watercolor Accent Palette */
+            --water-blue: #E8EEF5;
+            --forest-green: #EAF2EC;
+            --warm-amber: #F4EFEA;
+            --dusty-rose: #F4EBEA;
+            --soft-lavender: #EFEFF5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--canvas);
+            color: var(--charcoal);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 5vw;
+            border-bottom: 1px solid var(--border-subtle);
+            background: rgba(250, 250, 249, 0.85);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            letter-spacing: 0.25em;
+            font-weight: 300;
+            text-transform: uppercase;
+        }
+
+        nav button {
+            background: none;
+            border: 1px solid var(--charcoal);
+            padding: 0.6rem 1.2rem;
+            font-size: 0.85rem;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 4px;
+        }
+
+        nav button:hover {
+            background: var(--charcoal);
+            color: #FFF;
+        }
+
+        main {
+            padding: 4vw 5vw;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .artwork-card {
+            background: #FFFFFF;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .artwork-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.04);
+        }
+
+        .media-container {
+            width: 100%;
+            height: 350px;
+            background: var(--soft-lavender);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .media-container img, .media-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .artwork-info {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5srem;
+        }
+
+        .badge {
+            align-self: flex-start;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 0.25rem 0.6rem;
+            border-radius: 20px;
+            background: var(--water-blue);
+            color: #334E68;
+            margin-bottom: 0.5rem;
+        }
+
+        .artwork-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .artwork-desc {
+            font-size: 0.9rem;
+            color: var(--muted-gray);
+        }
+
+        /* Studio Admin Overlay Modal */
+        #studio-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(28,28,30,0.6);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .studio-card {
+            background: #FFF;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .studio-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+        }
+
+        input[type="text"], textarea, select {
+            padding: 0.8rem;
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            font-size: 1rem;
+            background: var(--canvas);
+        }
+
+        input[type="file"] {
+            padding: 0.6rem;
+            border: 1px dashed var(--muted-gray);
+            border-radius: 6px;
+            background: var(--warm-amber);
+            cursor: pointer;
+        }
+
+        .publish-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--charcoal);
+            color: #FFF;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        .publish-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Mobile Touch Enhancements */
+        @media (max-width: 768px) {
+            header { padding: 1.5rem 5vw; }
+            .studio-card { padding: 1.5rem; max-height: 95vh; }
+            nav button { padding: 0.8rem 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">Rubina</div>
+        <nav>
+            <button onclick="toggleStudio(true)">Studio Admin</button>
+        </nav>
+    </header>
+
+    <main>
+        <div id="gallery-grid" class="gallery-grid">
+            <!-- Dynamically populated from remote database -->
+            <p style="color: var(--muted-gray);">Connecting to remote gallery storage...</p>
+        </div>
+    </main>
+
+    <!-- Studio Upload Modal (Mobile Friendly) -->
+    <div id="studio-modal">
+        <div class="studio-card">
+            <div class="studio-header">
+                <h2>Studio Admin</h2>
+                <button class="close-btn" onclick="toggleStudio(false)">&times;</button>
+            </div>
+            <form id="upload-form" onsubmit="handleUpload(event)">
+                <div class="form-group">
+                    <label>Select Media File (Image / Video)</label>
+                    <input type="file" id="media-file" accept="image/*,video/*" capture="environment" required>
+                </div>
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="art-title" placeholder="e.g. Terkezi Oasis" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="art-category">
+                        <option value="Planet Earth">Planet Earth</option>
+                        <option value="Abstract">Abstract</option>
+                        <option value="Watercolor">Watercolor</option>
+                        <option value="Sculpture">Sculpture</option>
+                        <option value="Video">Video</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Mood / Palette Cue</label>
+                    <input type="text" id="art-mood" placeholder="e.g. Subdued Blue & Amber Light">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="art-desc" rows="3" placeholder="Curator's narrative..."></textarea>
+                </div>
+                <button type="submit" class="publish-btn" id="submit-btn">Publish to Online Gallery</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Replace with your actual Supabase project credentials
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        document.addEventListener("DOMContentLoaded", fetchArtworks);
+
+        function toggleStudio(show) {
+            document.getElementById('studio-modal').style.display = show ? 'flex' : 'none';
+        }
+
+        async function fetchArtworks() {
+            const grid = document.getElementById('gallery-grid');
+            const { data, error } = await supabaseClient
+                .from('artworks')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                grid.innerHTML = `<p style="color: #A36B62;">Error loading remote gallery: ${error.message}</p>`;
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                grid.innerHTML = `<p style="color: var(--muted-gray);">No published pieces in the exhibition yet. Use Studio Admin to add content.</p>`;
+                return;
+            }
+
+            grid.innerHTML = data.map(art => `
+                <div class="artwork-card">
+                    <div class="media-container">
+                        ${art.media_type === 'video' 
+                            ? `<video src="${art.media_url}" controls playsinline></video>`
+                            : `<img src="${art.media_url}" alt="${art.title}" loading="lazy">`
+                        }
+                    </div>
+                    <div class="artwork-info">
+                        <span class="badge">${art.category}</span>
+                        <h3 class="artwork-title">${art.title}</h3>
+                        <p class="artwork-desc">${art.description || art.mood || ''}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function handleUpload(event) {
+            event.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            btn.textContent = 'Uploading to Cloud...';
+            btn.disabled = true;
+
+            const fileInput = document.getElementById('media-file').files[0];
+            const title = document.getElementById('art-title').value;
+            const category = document.getElementById('art-category').value;
+            const mood = document.getElementById('art-mood').value;
+            const description = document.getElementById('art-desc').value;
+
+            try {
+                // 1. Upload File to Supabase Bucket Storage
+                const fileExt = fileInput.name.split('.').pop();
+                const fileName = `${Date.now()}_${Math.random().toString(36.substring(2)}.${fileExt}`;
+                const filePath = `gallery-uploads/${fileName}`;
+
+                const { error: uploadError } = await supabaseClient.storage
+                    .from('artworks-bucket')
+                    .upload(filePath, fileInput);
+
+                if (uploadError) throw uploadError;
+
+                // 2. Get Public CDN URL
+                const { data: publicUrlData } = supabaseClient.storage
+                    .from('artworks-bucket')
+                    .getPublicUrl(filePath);
+
+                const mediaUrl = publicUrlData.publicUrl;
+                const mediaType = fileInput.type.startsWith('video') ? 'video' : 'image';
+
+                // 3. Insert Record into Metadata Table
+                const { error: dbError } = await supabaseClient
+                    .from('artworks')
+                    .insert([{ title, category, mood, description, media_url: mediaUrl, media_type: mediaType }]);
+
+                if (dbError) throw dbError;
+
+                alert('Successfully published across all devices!');
+                toggleStudio(false);
+                document.getElementById('upload-form').reset();
+                fetchArtworks();
+            } catch (err) {
+                alert(`Upload failed: ${err.message}`);
+            } finally {
+                btn.textContent = 'Publish to Online Gallery';
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
